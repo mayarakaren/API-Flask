@@ -89,7 +89,7 @@ class GeneticAlgorithm:
             melhor_individuo = self.verificar_melhor_individuo(contador_geracoes)
         return melhor_individuo
 
-    def plot_fitness(self, save_path="img/genetic_algorithm_plot.png"):
+    def plot_fitness(self, img_folder):
         x = np.linspace(-500, 500, 100)
         y = np.linspace(-500, 500, 100)
         x, y = np.meshgrid(x, y)
@@ -117,14 +117,13 @@ class GeneticAlgorithm:
         ax.set_title('Superfície da função custo')
 
         plt.legend()
+        img_path = os.path.join(img_folder, 'genetic_algorithm.png')
+        plt.savefig(img_path)
+        plt.close()
+        return img_path
 
-        os.makedirs(os.path.dirname(save_path), exist_ok=True)
-        plt.savefig(save_path)
-        plt.close(fig)
-        return save_path
-
-def run_genetic_algorithm():
-    ga = GeneticAlgorithm()
-    best_individual = ga.init_execution()
-    image_path = ga.plot_fitness()
+def run_genetic_algorithm(img_folder):
+    algorithm_instance = GeneticAlgorithm()
+    best_individual = algorithm_instance.init_execution()
+    image_path = algorithm_instance.plot_fitness(img_folder)
     return best_individual, image_path

@@ -1,12 +1,16 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import pandas as pd
+import os
 from models.knn import knn
 from models.algGenetico import run_genetic_algorithm
 from models.arvore import arvore
 
 app = Flask(__name__)
 CORS(app)
+
+IMG_FOLDER = 'img'
+os.makedirs(IMG_FOLDER, exist_ok=True)
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
@@ -42,10 +46,10 @@ def classify():
     if algorithm == 'knn':
         accuracy = knn(csv_data)
     elif algorithm == 'algGenetico':
-        best_individual, image_path = run_genetic_algorithm()
+        best_individual, image_path = run_genetic_algorithm(IMG_FOLDER)
         accuracy = "N/A"
     elif algorithm == 'arvore':
-        accuracy, image_path = arvore()
+        accuracy, image_path = arvore(IMG_FOLDER)
     else:
         return jsonify({"erro": "Algoritmo inválido"}), 400
 
