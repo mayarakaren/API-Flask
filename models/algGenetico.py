@@ -55,7 +55,6 @@ class GeneticAlgorithm:
             f"Geração: {geracao}\n"
             f"Tamanho da População: {self.num_filhos}\n"
             "O melhor indivíduo:\n"
-            f"População: {self.populacao}\n"
             f"X = {melhor_individuo[0]}\n"
             f"Y = {melhor_individuo[1]}\n"
             f"Fitness = {melhor_individuo[2]}\n\n"
@@ -117,6 +116,11 @@ class GeneticAlgorithm:
         ax.set_title('Superfície da função custo')
 
         plt.legend()
+
+        # Verificar se o diretório de imagens existe, caso contrário, criar
+        if not os.path.exists(img_folder):
+            os.makedirs(img_folder)
+
         img_path = os.path.join(img_folder, 'genetic_algorithm.png')
         plt.savefig(img_path)
         plt.close()
@@ -127,3 +131,7 @@ def run_genetic_algorithm(img_folder):
     best_individual = algorithm_instance.init_execution()
     image_path = algorithm_instance.plot_fitness(img_folder)
     return best_individual, image_path
+
+# Exemplo de chamada da função
+best_individual, image_path = run_genetic_algorithm('imagens')
+print(f"Melhor indivíduo: {best_individual}, Caminho da imagem: {image_path}")
