@@ -1,18 +1,19 @@
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
-import pandas as pd
-import mimetypes
 import os
 import io
 from contextlib import redirect_stdout
 from models.knn import knn
 from models.algGenetico import run_genetic_algorithm
 from models.arvore import arvore
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 CORS(app)
 
 IMG_FOLDER = 'imagens'
+BASES_FOLDER = 'bases'
+os.makedirs(BASES_FOLDER, exist_ok=True)
 os.makedirs(IMG_FOLDER, exist_ok=True)
 
 @app.route('/upload', methods=['POST'])
@@ -25,18 +26,16 @@ def upload_file():
         return jsonify({"erro": "Nenhum arquivo selecionado"}), 400
 
     try:
-        # Detect file type and read accordingly
-        content_type = mimetypes.guess_type(file.filename)[0]
-        if file.filename.endswith('.data'):
-            csv_data = pd.read_csv(file)
-        else:
-            csv_data = pd.read_csv(file, delimiter='\s+', header=None)
-        file_path = os.path.join(IMG_FOLDER, file.filename)
-        csv_data.to_csv(file_path, index=False)
-    except Exception as e:
-        return jsonify({"erro": f"Erro ao ler o arquivo: {str(e)}"}), 400
+        # Garantir que o nome do arquivo é seguro para salvar no servidor
+        filename = secure_filename(file.filename)
 
-    return jsonify({"file_path": file_path}), 200
+        # Salvar o arquivo no diretório apropriado
+        file.save(os.path.join(BASES_FOLDER, filename))
+
+        return jsonify({"file_path": os.path.join(BASES_FOLDER, filename)}), 200
+
+    except Exception as e:
+        return jsonify({"erro": f"Erro ao salvar o arquivo: {str(e)}"}), 400
 
 @app.route('/classify', methods=['POST'])
 def classify():
