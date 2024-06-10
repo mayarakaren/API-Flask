@@ -16,63 +16,51 @@ BASES_FOLDER = 'bases'
 os.makedirs(BASES_FOLDER, exist_ok=True)
 os.makedirs(IMG_FOLDER, exist_ok=True)
 
-@app.route('/upload', methods=['POST'])
-def upload_file():
-    if 'file' not in request.files:
-        return jsonify({"erro": "Nenhum arquivo encontrado na requisição"}), 400
-
-    file = request.files['file']
-    if file.filename == '':
-        return jsonify({"erro": "Nenhum arquivo selecionado"}), 400
-
-    try:
-        # Garantir que o nome do arquivo é seguro para salvar no servidor
-        filename = secure_filename(file.filename)
-
-        # Salvar o arquivo no diretório apropriado
-        file.save(os.path.join(BASES_FOLDER, filename))
-
-        return jsonify({"file_path": os.path.join(BASES_FOLDER, filename)}), 200
-
-    except Exception as e:
-        return jsonify({"erro": f"Erro ao salvar o arquivo: {str(e)}"}), 400
-
 @app.route('/classify', methods=['POST'])
 def classify():
     data = request.get_json()
 
-    if 'filePath' not in data or 'algorithm' not in data:
-        return jsonify({"erro": "Dados ausentes na requisição"}), 400
+    if 'algorithm' not in data:
+        return jsonify({"erro": "Algoritmo não especificado"}), 400
 
-    file_path = data['filePath']
     algorithm = data['algorithm']
-    image_path = ""
     output = ""
-    accuracy = ""
+    accuracy = None
+    image_path = None
 
-    if algorithm == 'knn':
-        f = io.StringIO()
-        with redirect_stdout(f):
-            output = knn(file_path)
-        output = f.getvalue()
-    elif algorithm == 'algGenetico':  # Ensure the correct name is used
-        f = io.StringIO()
-        with redirect_stdout(f):
+    try:
+        if algorithm == 'knn':
+            output = knn()
+        elif algorithm == 'algGenetico':
             best_individual, image_path = run_genetic_algorithm(IMG_FOLDER)
-        output = f.getvalue()
-    elif algorithm == 'arvore':
-        f = io.StringIO()
-        with redirect_stdout(f):
+            output = (
+                    "======================================\n"
+                    "O melhor indivíduo:\n"
+                    f"X = {best_individual[0]}\n"
+                    f"Y = {best_individual[1]}\n"
+                    f"Fitness = {best_individual[2]}\n\n"
+                )
+        elif algorithm == 'arvore':
+            if 'filePath' not in data:
+                return jsonify({"erro": "Caminho do arquivo não especificado"}), 400
+            file_path = data['filePath']
             accuracy, image_path = arvore(file_path, IMG_FOLDER)
-        output = f.getvalue()
-    else:
-        return jsonify({"erro": "Algoritmo inválido"}), 400
+            output = f"Acurácia do algoritmo de árvore de decisão: {accuracy * 100:.2f}" if accuracy is not None else "Erro ao executar o algoritmo"
+        else:
+            return jsonify({"erro": "Algoritmo inválido"}), 400
 
-    response = {"output": output, "acurácia": accuracy if algorithm != 'algGenetico' else "N/A"}
-    if image_path:
-        response["imagem"] = f"/imagens/{os.path.basename(image_path)}"
+        response = {
+            "output": output,
+            "acurácia": accuracy if accuracy is not None else "N/A"
+        }
+        if image_path:
+            response["imagem"] = f"/imagens/{os.path.basename(image_path)}"
 
-    return jsonify(response), 200
+        return jsonify(response), 200
+
+    except Exception as e:
+        return jsonify({"erro": f"Erro ao executar o algoritmo: {str(e)}"}), 500
+
 
 @app.route('/imagens/<path:filename>')
 def serve_image(filename):
