@@ -45,6 +45,9 @@ def arvore(file_path, img_folder):
     except Exception as e:
         return None, None
 
-# Exemplo de chamada da função
-accuracy, img_path = arvore('bases/iris.data', 'imagens')
+# Correção na chamada da função arvore
+result = arvore('bases/iris.data', 'imagens')
+accuracy = result[0]
+img_path = result[1]
+
 print(f"Acurácia: {accuracy}, Caminho da imagem: {img_path}")

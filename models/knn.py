@@ -1,3 +1,4 @@
+# models/knn.py
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import train_test_split
 import numpy as np
@@ -29,7 +30,7 @@ def knn():
             knn.fit(X_TRAIN, Y_TRAIN)
             previsoes = knn.predict(X_TEST)
             acuracia = accuracy_score(Y_TEST, previsoes) * 100
-            result = "Vizinho {}, teve a taxa de acerto de {:.2f}%".format(n, acuracia)
+            result = f"Vizinho {n}, teve a taxa de acerto de {acuracia:.2f}%"
             print(result)
             output += result + "\n"
             acuracias.append(acuracia)
@@ -37,14 +38,21 @@ def knn():
         # Determina o melhor valor de k
         melhor_vizinho = neighboors[np.argmax(acuracias)]
         acuracia_melhor_vizinho = max(acuracias)
-        result = "\nMelhor vizinho foi o: {}, com a taxa de acerto de {:.2f}%".format(melhor_vizinho, acuracia_melhor_vizinho)
+        result = f"\nMelhor vizinho foi o: {melhor_vizinho}, com a taxa de acerto de {acuracia_melhor_vizinho:.2f}%"
         print(result)
         output += result + "\n"
-        
-        return output
-    except Exception as e:
-        return f"Erro: {str(e)}"
 
-# Executa a função knn
+        # Retornar as informações adicionais
+        return {
+            "quantidade_exemplos": len(dados),
+            "quantidade_classes": len(dados['class'].unique()),
+            "quantidade_atributos": len(col_names) - 1,
+            "taxa_acerto": acuracia_melhor_vizinho,
+            "output": output
+        }
+    except Exception as e:
+        return {"erro": str(e)}
+
+# Executa a função knn e armazena o resultado
 resultado_knn = knn()
 print(resultado_knn)

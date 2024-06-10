@@ -1,8 +1,6 @@
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import os
-import io
-from contextlib import redirect_stdout
 from models.knn import knn
 from models.algGenetico import run_genetic_algorithm
 from models.arvore import arvore
@@ -30,22 +28,40 @@ def classify():
 
     try:
         if algorithm == 'knn':
-            output = knn()
-        elif algorithm == 'algGenetico':
-            best_individual, image_path = run_genetic_algorithm(IMG_FOLDER)
+            result = knn()
             output = (
-                    "======================================\n"
-                    "O melhor indivíduo:\n"
-                    f"X = {best_individual[0]}\n"
-                    f"Y = {best_individual[1]}\n"
-                    f"Fitness = {best_individual[2]}\n\n"
-                )
+                f"Quantidade de exemplos: {result['quantidade_exemplos']}\n"
+                f"Quantidade de classes: {result['quantidade_classes']}\n"
+                f"Quantidade de atributos: {result['quantidade_atributos']}\n"
+                f"Taxa de acerto: {result['taxa_acerto']:.2f}%\n"
+                f"----------------------------------\n"
+                f"Saída do KNN:\n{result['output']}"
+            )
+        elif algorithm == 'algGenetico':
+            best_individual, image_path, funcao_objetivo, dominio = run_genetic_algorithm(IMG_FOLDER)
+            output = (
+                "======================================\n"
+                "O melhor indivíduo:\n"
+                f"X = {best_individual[0]}\n"
+                f"Y = {best_individual[1]}\n"
+                f"Fitness = {best_individual[2]}\n\n"
+                f"Função objetivo: {funcao_objetivo}\n"
+                f"Domínio: {dominio}"
+            )
         elif algorithm == 'arvore':
             if 'filePath' not in data:
                 return jsonify({"erro": "Caminho do arquivo não especificado"}), 400
             file_path = data['filePath']
-            accuracy, image_path = arvore(file_path, IMG_FOLDER)
-            output = f"Acurácia do algoritmo de árvore de decisão: {accuracy * 100:.2f}" if accuracy is not None else "Erro ao executar o algoritmo"
+            result = arvore(file_path, IMG_FOLDER)
+            accuracy = result['taxa_acerto']
+            image_path = result['image_path']
+            output = (
+                f"Quantidade de exemplos: {result['quantidade_exemplos']}\n"
+                f"Quantidade de classes: {result['quantidade_classes']}\n"
+                f"Quantidade de atributos: {result['quantidade_atributos']}\n"
+                f"Taxa de acerto: {result['taxa_acerto']:.2f}%\n"
+                f"Modelo criado: {result['modelo_criado']}"
+            )
         else:
             return jsonify({"erro": "Algoritmo inválido"}), 400
 

@@ -130,8 +130,14 @@ def run_genetic_algorithm(img_folder):
     algorithm_instance = GeneticAlgorithm()
     best_individual = algorithm_instance.init_execution()
     image_path = algorithm_instance.plot_fitness(img_folder)
-    return best_individual, image_path
+
+    # Retornar as informações adicionais
+    funcao_objetivo = "Minimizar z = 837,9658 - Σ xi² sin(√|xi|)"
+    dominio = "Intervalo [-500, +500]"
+    
+    return best_individual, image_path, funcao_objetivo, dominio
 
 # Exemplo de chamada da função
-best_individual, image_path = run_genetic_algorithm('imagens')
+best_individual, image_path, funcao_objetivo, dominio = run_genetic_algorithm('imagens')
 print(f"Melhor indivíduo: {best_individual}, Caminho da imagem: {image_path}")
+print(f"Função objetivo: {funcao_objetivo}, Domínio: {dominio}")
